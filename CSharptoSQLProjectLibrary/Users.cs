@@ -19,7 +19,14 @@ namespace CSharptoSQLProjectLibrary {
               " IsAdmin = @IsAdmin, " +
               " IsReviewer = @IsReviewer " +
               " Where Id = @Id";
-            var sqlcmd = new SqlCommand(sql, Connection._Connection);
+            var sqlcmd = new SqlCommand(sql, Connection.sqlConnection);
+            SetParameterValues(user, sqlcmd);
+            sqlcmd.Parameters.AddWithValue("@Id", user.Id); //Refactor this
+            var rowsAffected = sqlcmd.ExecuteNonQuery();
+            return (rowsAffected == 1);
+        }
+
+        private static void SetParameterValues(Users user, SqlCommand sqlcmd) {
             sqlcmd.Parameters.AddWithValue("@Username", user.Username);
             sqlcmd.Parameters.AddWithValue("@Password", user.Password);
             sqlcmd.Parameters.AddWithValue("@FirstName", user.FirstName);
@@ -28,9 +35,6 @@ namespace CSharptoSQLProjectLibrary {
             sqlcmd.Parameters.AddWithValue("@Email", (object)user.Email ?? DBNull.Value);
             sqlcmd.Parameters.AddWithValue("@IsAdmin", user.IsAdmin);
             sqlcmd.Parameters.AddWithValue("@IsReviewer", user.IsReviewer);
-            sqlcmd.Parameters.AddWithValue("@Id", user.Id); //Refactor this
-            var rowsAffected = sqlcmd.ExecuteNonQuery();
-            return (rowsAffected == 1);
         }
 
         public static bool Insert(Users user) {
@@ -38,15 +42,8 @@ namespace CSharptoSQLProjectLibrary {
                "(Username, Password, FirstName, LastName, Phone, Email, IsAdmin, IsReviewer) " +
                " VALUES " +
               "(@Username, @Password, @FirstName, @LastName, @Phone, @Email, @IsAdmin, @IsReviewer)";
-            var sqlcmd = new SqlCommand(sql, Connection._Connection);
-            sqlcmd.Parameters.AddWithValue("@Username", user.Username);
-            sqlcmd.Parameters.AddWithValue("@Password", user.Password);
-            sqlcmd.Parameters.AddWithValue("@FirstName", user.FirstName);
-            sqlcmd.Parameters.AddWithValue("@Lastname", user.LastName);
-            sqlcmd.Parameters.AddWithValue("@Phone", (object)user.Phone ?? DBNull.Value);
-            sqlcmd.Parameters.AddWithValue("@Email", (object)user.Email ?? DBNull.Value);
-            sqlcmd.Parameters.AddWithValue("@IsAdmin", user.IsAdmin);
-            sqlcmd.Parameters.AddWithValue("@IsReviewer", user.IsReviewer); //Refactor this 
+            var sqlcmd = new SqlCommand(sql, Connection.sqlConnection);
+            SetParameterValues(user, sqlcmd);
             var rowsAffected = sqlcmd.ExecuteNonQuery();
             return (rowsAffected == 1);
 
@@ -55,10 +52,11 @@ namespace CSharptoSQLProjectLibrary {
             
 
         }
+        const string SqlDelete = "DELETE from Users Where Id = @Id;";
 
         public static bool Delete(int id) {
-            var sql = "DELETE from Users where Id = @Id;";
-            var sqlcmd = new SqlCommand(sql, Connection._Connection);
+            var sql = SqlDelete;
+            var sqlcmd = new SqlCommand(sql, Connection.sqlConnection);
             sqlcmd.Parameters.AddWithValue("@Id", id);
             var rowsAffected = sqlcmd.ExecuteNonQuery();
             return (rowsAffected == 1);
@@ -67,7 +65,7 @@ namespace CSharptoSQLProjectLibrary {
 
         public static Users GetByPk(int id) {
             var sql = "SELECT * from Users where Id = @Id";
-            var sqlcmd = new SqlCommand(sql, Connection._Connection);
+            var sqlcmd = new SqlCommand(sql, Connection.sqlConnection);
             sqlcmd.Parameters.AddWithValue("@Id", id);
             var reader = sqlcmd.ExecuteReader();
             if (!reader.HasRows) {
@@ -87,7 +85,7 @@ namespace CSharptoSQLProjectLibrary {
         
         public static List<Users> GetAll() {
             var sql = "SELECT * from Users;";
-            var sqlcmd = new SqlCommand(sql, Connection._Connection);
+            var sqlcmd = new SqlCommand(sql, Connection.sqlConnection);
             var reader = sqlcmd.ExecuteReader();
             var users = new List<Users>();
             while(reader.Read()) {
@@ -105,7 +103,7 @@ namespace CSharptoSQLProjectLibrary {
 
         public static Users Login(string username, string password) {
             var sql = "SELECT * from Users where Username = @Username and Password = @Password";
-            var sqlcmd = new SqlCommand(sql, Connection._Connection);
+            var sqlcmd = new SqlCommand(sql, Connection.sqlConnection);
             sqlcmd.Parameters.AddWithValue("Username", username);
             sqlcmd.Parameters.AddWithValue("Password", password);
             var reader = sqlcmd.ExecuteReader();
